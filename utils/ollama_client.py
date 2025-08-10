@@ -19,7 +19,16 @@ def chat_call(model, messages, stream=True, options=None):
         client = ollama.Client(host=base_url)
     else:
         client = ollama
-    return client.chat(model=model, messages=messages, stream=stream, options=options or {})
+    try:
+        return client.chat(model=model, messages=messages, stream=stream, options=options or {})
+    except ollama.ResponseError as e:
+        st.error(f"Ollama error: {e.error}")
+        st.info("Is the model you're trying to use pulled? Quick test in a terminal: `ollama run {model} 'hello'`")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error: Could not connect to Ollama. Please ensure it is running.")
+        st.info(f"Tip: set OLLAMA_HOST to point at a remote server, for example http://localhost:11434. Details: {e}")
+        st.stop()
 
 def stream_response(events, container):
     text = ""
